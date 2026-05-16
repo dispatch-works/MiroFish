@@ -21,8 +21,16 @@ class Config:
     """Flask配置类"""
     
     # Flask配置
-    SECRET_KEY = os.environ.get('SECRET_KEY', 'mirofish-secret-key')
-    DEBUG = os.environ.get('FLASK_DEBUG', 'True').lower() == 'true'
+    SECRET_KEY = os.environ.get('SECRET_KEY')
+    DEBUG = os.environ.get('FLASK_DEBUG', 'False').lower() == 'true'
+
+    # CORS允许的来源（逗号分隔）。默认仅允许本地 Vite dev server。
+    CORS_ORIGINS = [
+        o.strip() for o in os.environ.get(
+            'CORS_ORIGINS',
+            'http://localhost:3000,http://127.0.0.1:3000'
+        ).split(',') if o.strip()
+    ]
     
     # JSON配置 - 禁用ASCII转义，让中文直接显示（而不是 \uXXXX 格式）
     JSON_AS_ASCII = False
@@ -67,6 +75,8 @@ class Config:
     def validate(cls):
         """验证必要配置"""
         errors = []
+        if not cls.SECRET_KEY:
+            errors.append("SECRET_KEY 未配置（必须在 .env 中设置一个强随机值）")
         if not cls.LLM_API_KEY:
             errors.append("LLM_API_KEY 未配置")
         if not cls.ZEP_API_KEY:
